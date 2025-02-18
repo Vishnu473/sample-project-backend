@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "a sample backend project built by learning concepts",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"nodemon src/index.js"
   },
   "keywords": [
     "javascript",
@@ -14,6 +16,9 @@
     "mongoose",
     "backend"
   ],
-  "author": "\"Vishnu Kishore\"",
-  "license": "ISC"
+  "author": "Vishnu Kishore",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
 }
