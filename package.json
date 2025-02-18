@@ -1,0 +1,19 @@
+{
+  "name": "sample-project-backend",
+  "version": "1.0.0",
+  "description": "a sample backend project built by learning concepts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "javascript",
+    "express",
+    "node",
+    "mongo",
+    "mongoose",
+    "backend"
+  ],
+  "author": "\"Vishnu Kishore\"",
+  "license": "ISC"
+}
