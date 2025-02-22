@@ -9,6 +9,7 @@ const UserSchema = new Schema(
     password: { type: String, required: true},
     profilePic: { type: String, default: "" },
     bio: { type: String, default: "" },
+    refreshToken:{type:String}
   },
   {
     timestamps: true,
