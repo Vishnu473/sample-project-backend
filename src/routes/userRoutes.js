@@ -1,16 +1,16 @@
 import { Router } from "express";
-import { verifyToken } from "../middlewares/token.middleware";
-import { changeCurrentPassword, loginUser, logOutUser, registerUser } from "../controllers/user.controller";
-
+import { verifyToken } from "../middlewares/token.middleware.js";
+import { getAllUsers,changeCurrentPassword, loginUser, logOutUser, registerUser } from "../controllers/user.controller.js";
 
 const router = Router();
 
-router.route('/register').post(registerUser);
-router.route('/login').post(loginUser);
+router.get('/all',getAllUsers);
+router.post('/register',registerUser);
+router.post('/login',loginUser);
 
 //protected routes
-router.route('/logOut').post(logOutUser);
-router.route('/change-password').post(changeCurrentPassword);
+router.post('/logout',verifyToken,logOutUser);
+router.post('/change-password',verifyToken,changeCurrentPassword);
 
 
 export default router

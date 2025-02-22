@@ -4,9 +4,9 @@ import jwt from "jsonwebtoken";
 
 const UserSchema = new Schema(
   {
-    name: { type: String, required: true, index: true },
+    username: { type: String, required: true, index: true },
     email: { type: String, required: true, unique: true, index: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true},
     profilePic: { type: String, default: "" },
     bio: { type: String, default: "" },
   },
@@ -16,17 +16,17 @@ const UserSchema = new Schema(
 );
 
 UserSchema.pre("save", async function (next) {
-  if (this.isModified("password")) return next();
+  if(!this.isModified("password")) return next();
 
-  this.password = bcrypt.compare(this.password, 10);
-  next();
-});
+  this.password = await bcrypt.hash(this.password, 10)
+  next()
+})
 
-UserSchema.methods.isPasswordCorrect = async function (password) {
+UserSchema.methods.isPasswordCorrect = async function(password) {
   return await bcrypt.compare(password, this.password);
 };
 
-UserSchema.methods.generateAccessToken = function () {
+UserSchema.methods.generateAccessToken = function() {
   return jwt.sign(
     {
       _id: this.id,

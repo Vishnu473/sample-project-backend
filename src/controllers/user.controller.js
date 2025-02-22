@@ -1,7 +1,7 @@
-import { User } from "../models/user.model";
-import { asyncHandler } from "../services/asyncHandler";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
+import { User } from "../models/user.model.js";
+import { asyncHandler } from "../services/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 const generateAccessAndRefreshTokens = async function(userId){
     try {
@@ -19,23 +19,34 @@ const generateAccessAndRefreshTokens = async function(userId){
     }
 }
 
-//handle confirmPassword, email at frontEnd
-const registerUser = asyncHandler(async (req, res) => {
-  const { username, password, email } = req.body;
+export const getAllUsers = asyncHandler(async(req,res) => {
+  const users = await User.find();
+  if(!users){
+    res.status(404).json("no data")
+  }
+  res.status(200)
+  .json({
+    users
+  })
+})
 
-  if (![username, password, email].some((val) => val.trim() === "")) {
+//handle confirmPassword, email at frontEnd
+export const registerUser = asyncHandler(async (req, res) => {
+  const { username, password, email,profilePic,bio } = req.body;
+
+  if ([username, password, email].some((val) => val.trim() === "")) {
     throw new ApiError(400, "All fields are required");
   }
 
-  const existedUser = User.find({
+  const existedUser = await User.findOne({
     $or: [{username}, {email}],
   });
 
-  if (!existedUser) {
+  if (existedUser) {
     throw new ApiError(400, "User already exists");
   }
 
-  const user = await User.create({ username, password, email });
+  const user = await User.create({ username, password, email,profilePic, bio });
 
   const registeredUser = await User.findById(user._id).select(
     "-password"
@@ -53,14 +64,14 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, registeredUser, "User registered successfully"));
 });
 
-const loginUser = asyncHandler(async (req, res) => {
+export const loginUser = asyncHandler(async (req, res) => {
     const {username,email,password} = req.body;
 
     if(!username && !email){
         throw new ApiError(400,"Username or email is required")
     }
 
-    const existedUser = User.find({
+    const existedUser = await User.findOne({
         $or: [{username}, {email}],
       });
     
@@ -68,10 +79,12 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "User does not exists");
       }
 
-      const isPasswordValid = existedUser.isPasswordCorrect(password)
+      console.log(existedUser.username, existedUser.password)
 
+      const isPasswordValid = await existedUser.isPasswordCorrect(password)
+      console.log(password,isPasswordValid);
       if(!isPasswordValid){
-        throw new ApiError("Invalid user credentials")
+        throw new ApiError(401,"Invalid user credentials")
       }
 
       const {accessToken,refreshToken} = await generateAccessAndRefreshTokens(existedUser._id);
@@ -91,7 +104,7 @@ const loginUser = asyncHandler(async (req, res) => {
       )
 });
 
-const logOutUser = asyncHandler(async(req,res) => {
+export const logOutUser = asyncHandler(async(req,res) => {
     const user = await User.findById(req.user._id)
 
     if(!user){
@@ -104,28 +117,26 @@ const logOutUser = asyncHandler(async(req,res) => {
       }
 
       return res.status(200)
-      .clearcookie("accessToken",options)
-      .clearcookie("refreshToken",options)
+      .clearCookie("accessToken",options)
+      .clearCookie("refreshToken",options)
       .json(
         new ApiResponse(200,{},"User loggedOut successfully")
       )
 })
 
-const changeCurrentPassword = asyncHandler(async(req,res) => {
+export const changeCurrentPassword = asyncHandler(async(req,res) => {
     const {oldPassword, newPassword} = req.body;
 
     const user = await User.findById(req.user?._id);
-    const ispasswordValid = user.isPasswordCorrect(oldPassword);
+    const ispasswordValid = await user.isPasswordCorrect(oldPassword);
 
     if(!ispasswordValid){
         throw ApiError(400,"oldPassword didnot match")
     }
 
     user.password = newPassword;
-    user.save({validateBeforeSave:false})
+    await user.save({validateBeforeSave:false})
 
     return res.status(200)
     .json(new ApiResponse(200,{},"Password changed successfully"))
 })
-
-export {registerUser,loginUser,logOutUser,changeCurrentPassword}
