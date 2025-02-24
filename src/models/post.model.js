@@ -10,7 +10,7 @@ const PostSchema = new Schema(
     },
     title:{type:String, default:""},
     description: { type: String, default: "" },
-    mediaUrl: { type: String, default: "",required:true },
+    mediaUrl: { type: String, default: "" },
     privacy: { type: String, enum: ["public", "private"], default: "public" },
   },
   { timestamps: true }
