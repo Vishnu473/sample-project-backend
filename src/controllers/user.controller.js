@@ -128,7 +128,7 @@ export const logOutUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (!user) {
-    throw new ApiError(
+    throw new ApiError(500,
       "Something went wrong, retry logging out after sometime"
     );
   }
@@ -177,7 +177,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   // Check if username or email that user is changing to already available mail or username
   const existingUser = await User.findOne({
     $or: [{ email }, { username }],
-    _id: { $ne: req.user._id }, // Exclude current user from check
+    _id: { $ne: req.user?._id }, // Exclude current user from check
   });
 
   if (existingUser) {
@@ -193,7 +193,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       bio,
     },
     { new: true }
-  ).select("-password -refreshtoken");
+  ).select("-password -refreshToken");
 
   return res
     .status(200)
@@ -205,7 +205,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
 export const getUserProfile = asyncHandler(async (req, res) => {
   //If req.params.userId ==> Get the a's profile that b clicked
   //If no req.params.userId ==> Then user clicked on his profile.
-  const userId = req.params.id || req.user._id;
+  const userId = req.params?.id || req.user?._id;
 
   const user = await User.findById(userId).select("-password -refreshToken");
 
@@ -220,12 +220,13 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 
 
 export const searchUsers = asyncHandler(async (req, res) => {
-  const searchQuery = req.params.query;
+  const searchQuery = req.query.query;
 
   if (!searchQuery) {
     throw new ApiError(400, "Search query is required");
   }
-
+  console.log(searchQuery);
+  
   const users = await User.find({
     $or: [
       { fullName: { $regex: `^${searchQuery}`, $options: "i" } }, // Match from start of name and case-insensitive
