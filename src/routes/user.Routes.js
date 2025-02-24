@@ -24,7 +24,7 @@ router.post("/change-password", verifyToken, changeCurrentPassword);
 router.post("/update-profile",verifyToken,updateUserProfile);
 router.post("/get-user-profile",verifyToken,getUserProfile);
 router.post("/get-user-profile/:id",verifyToken,getUserProfile);
-router.post("/search-users/",verifyToken,searchUsers);
+router.post("/search-users",verifyToken,searchUsers);
 router.post("/refresh-token",verifyToken, refreshAccessToken);
 
 export default router;

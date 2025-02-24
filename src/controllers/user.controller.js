@@ -234,7 +234,7 @@ export const searchUsers = asyncHandler(async (req, res) => {
     ]
   }).select("-password -refreshToken");
 
-  if (!users.length) {
+  if (!users || users.length < 1) {
     throw new ApiError(404, "No matching users found");
   }
 
