@@ -105,15 +105,10 @@ export const loginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
 
-  const options = {
-    secure: true,
-    httpOnly: true,
-  };
-
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, {secure:true, httpOnly: true, maxAge: 7*24*60*60*1000})
+    .cookie("refreshToken", refreshToken, {secure:true, httpOnly: true, maxAge: 21*24*60*60*1000})
     .json(new ApiResponse(200, loggedInUser, "User loggedin successfully"));
 });
 
@@ -254,9 +249,16 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(403, "Reuse token detected, Login Again");
     }
 
-    const options = {
+    const accessOptions = {
       httpOnly: true,
       secure: true,
+      maxAge: 7*24*60*60*1000
+    };
+
+    const refreshOptions = {
+      httpOnly: true,
+      secure: true,
+      maxAge: 21*24*60*60*1000
     };
 
     const { accessToken, refreshToken } =
@@ -264,8 +266,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, accessOptions)
+      .cookie("refreshToken", refreshToken, refreshOptions)
       .json(new ApiResponse(200, {}, "Access token refreshed successfully"));
   } catch (error) {
     throw new ApiError(401, error.message || "Invalid refresh Token");
