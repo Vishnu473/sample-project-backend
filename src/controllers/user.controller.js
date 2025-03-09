@@ -138,25 +138,19 @@ export const logOutUser = asyncHandler(async (req, res) => {
     );
   }
 
-  const options = {
-    secure: true,
-    httpOnly: true,
-    sameSite: "None",
-  };
-
   return res
     .status(200)
-    .clearCookie("accessToken", {
-      secure: true,
+    .cookie("accessToken", "", {
       httpOnly: true,
+      secure: true,
       sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      expires: new Date(0), // Expire immediately
     })
-    .clearCookie("refreshToken", {
-      secure: true,
+    .cookie("refreshToken", "", {
       httpOnly: true,
+      secure: true,
       sameSite: "None",
-      maxAge: 21 * 24 * 60 * 60 * 1000,
+      expires: new Date(0), // Expire immediately
     })
     .json(new ApiResponse(200, {}, "User loggedOut successfully"));
 });
