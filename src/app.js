@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 const app = express();
-const allowedOrigins = ["https://vishnu473.github.io","http://localhost:5173"]
+const allowedOrigins = ["https://followave-vishnu.netlify.app","https://vishnu473.github.io","http://localhost:5173"]
 app.use(
   cors({
     origin: function (origin, callback) {
