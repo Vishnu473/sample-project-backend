@@ -107,12 +107,26 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, {secure:true, httpOnly: true, maxAge: 7*24*60*60*1000})
-    .cookie("refreshToken", refreshToken, {secure:true, httpOnly: true, maxAge: 21*24*60*60*1000})
+    .cookie("accessToken", accessToken, {
+      secure: true,
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .cookie("refreshToken", refreshToken, {
+      secure: true,
+      httpOnly: true,
+      maxAge: 21 * 24 * 60 * 60 * 1000,
+    })
     .json(new ApiResponse(200, loggedInUser, "User loggedin successfully"));
 });
 
 export const logOutUser = asyncHandler(async (req, res) => {
+  console.log("Cookies received:", req.cookies);
+  console.log("Authorization Header:", req.headers.authorization);
+
+  if (!req.user || !req.user._id) {
+    throw new ApiError(401, "Unauthorized - No user found in request");
+  }
   const user = await User.findById(req.user._id);
 
   if (!user) {
@@ -129,8 +143,16 @@ export const logOutUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", {
+      secure: true,
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .clearCookie("refreshToken", {
+      secure: true,
+      httpOnly: true,
+      maxAge: 21 * 24 * 60 * 60 * 1000,
+    })
     .json(new ApiResponse(200, {}, "User loggedOut successfully"));
 });
 
@@ -252,13 +274,13 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     const accessOptions = {
       httpOnly: true,
       secure: true,
-      maxAge: 7*24*60*60*1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     };
 
     const refreshOptions = {
       httpOnly: true,
       secure: true,
-      maxAge: 21*24*60*60*1000
+      maxAge: 21 * 24 * 60 * 60 * 1000,
     };
 
     const { accessToken, refreshToken } =
