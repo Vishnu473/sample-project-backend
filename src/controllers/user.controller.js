@@ -232,8 +232,8 @@ export const searchUsers = asyncHandler(async (req, res) => {
 
   const users = await User.find({
     $or: [
-      { fullName: { $regex: `^${searchQuery}`, $options: "i" } }, // Match from start of name and case-insensitive
-      { email: { $regex: `^${searchQuery}`, $options: "i" } }, // Match from start of email and case-insensitive
+      { fullName: { $regex: `^${searchQuery}.*`, $options: "i" } }, // Match from start of name and case-insensitive
+      { email: { $regex: `^${searchQuery}.*`, $options: "i" } }, // Match from start of email and case-insensitive
     ],
   }).select("-password -refreshToken");
 
