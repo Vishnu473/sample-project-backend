@@ -26,7 +26,7 @@ export const addPost = asyncHandler(async (req, res) => {
   if (!req.user) {
     throw new ApiError(400, "UnAuthorized! Login to add Post");
   }
-  const { title, description, mediaUrl, privacy, tags } = req.body;
+  const { title, description, media, privacy, tags } = req.body;
 
   if ([title, description].some((val) => val.trim() === "")) {
     throw new ApiError(400, "Title or description are required");
@@ -49,7 +49,7 @@ export const addPost = asyncHandler(async (req, res) => {
     title,
     description,
     privacy,
-    mediaUrl,
+    media,
     tags,
   });
   newPost.trimTags();
@@ -57,7 +57,7 @@ export const addPost = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, post, "Post published successfully"));
+    .json(new ApiResponse(201, post, "Post uploaded successfully"));
 });
 
 export const updatePost = asyncHandler(async (req, res) => {

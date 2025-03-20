@@ -8,19 +8,25 @@ const PostSchema = new Schema(
       required: true,
       index: true,
     },
-    title: { type: String, default: "",unique:true },
-    description: { type: String, default: "",unique:true },
-    mediaUrl: { type: String, default: "" },
+    title: { type: String, default: ""},
+    description: { type: String, default: ""},
+    media: [
+      {
+        url: { type: String, required: true },
+        publicId: { type: String, required: true },
+        type: { type: String, required: true },
+      },
+    ],
     privacy: { type: String, enum: ["public", "private"], default: "public" },
     tags: [{ type: String }],
   },
   { timestamps: true }
 );
 
-PostSchema.methods.trimTags = function(){
-  if(this.tags && Array.isArray(this.tags)){
-    this.tags = this.tags.map(tag => tag.trim()).filter(t => t !== "")
+PostSchema.methods.trimTags = function () {
+  if (this.tags && Array.isArray(this.tags)) {
+    this.tags = this.tags.map((tag) => tag.trim()).filter((t) => t !== "");
   }
-}
+};
 
 export const Post = mongoose.model("Post", PostSchema);
