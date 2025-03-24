@@ -11,7 +11,7 @@ export const getAllMyPosts = asyncHandler(async (req, res) => {
     throw new ApiError(400, "UnAuthorized!");
   }
 
-  const posts = await Post.find();
+  const posts = await Post.find().sort({ createdAt: -1 });
 
   if (posts.length === 0) {
     return res.status(200).json(new ApiResponse(200, {}, "No posts found"));
@@ -151,7 +151,7 @@ export const getUserPosts = asyncHandler(async (req, res) => {
     throw ApiError(404, "User not found");
   }
 
-  const userPosts = await Post.find({ creator: userId });
+  const userPosts = await Post.find({ creator: userId }).sort({ createdAt: -1 });;
 
   return res
     .status(200)
