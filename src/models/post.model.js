@@ -14,7 +14,7 @@ const PostSchema = new Schema(
       {
         url: { type: String, required: true },
         publicId: { type: String, required: true },
-        type: { type: String, required: true },
+        type: { type: String, required: true, enum: ["image", "video"] },
       },
     ],
     privacy: { type: String, enum: ["public", "private"], default: "public" },
