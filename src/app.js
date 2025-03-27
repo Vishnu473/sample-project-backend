@@ -29,11 +29,12 @@ app.use(cookieParser());
 import userRoutes from "./routes/user.Routes.js";
 import postRoutes from "./routes/post.Routes.js";
 import uploadRoutes from "./routes/upload.Routes.js";
-
+import followRoutes from "./routes/follow.Routes.js";
 
 app.use("/api/v1/users",userRoutes);
 app.use("/api/v1/posts",postRoutes);
 app.use("/api/v1/upload",uploadRoutes);
+app.use("/api/v1/follow",followRoutes);
 
 
 app.use((err, req, res, next) => {

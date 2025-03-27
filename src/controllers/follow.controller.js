@@ -8,10 +8,6 @@ import { ApiResponse } from "../utils/ApiResponse";
 export const followUser = asyncHandler(async (req, res) => {
   const { followingId } = req.body;
 
-  if (req.user?._id.toString() === followingId.toString()) {
-    throw new ApiError(400, "You cannot follow yourself!");
-  }
-
   const followingUser = await User.findById(followingId).select("followersPrivacy");
   if (!followingUser) throw new ApiError(404, "User not found!");
 
@@ -97,8 +93,6 @@ export const getUserFollowers = asyncHandler(async (req, res) => {
 export const getUserFollowing = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  if (!mongoose.isValidObjectId(userId)) throw new ApiError(400, "Invalid user ID.");
-
   const user = await User.findById(userId).select("followingPrivacy");
   if (!user) throw new ApiError(404, "User not found.");
 
@@ -137,15 +131,7 @@ export const getMyFollowers = asyncHandler(async (req, res) => {
 });
 
 export const getUserFollowStats  = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new ApiError(401, "Unauthorized!");
-  }
-
   const { userId } = req.params;
-
-  if (!mongoose.isValidObjectId(userId)) {
-    throw new ApiError(400, "Invalid user ID.");
-  }
 
   const userExists = await User.exists({ _id: userId });
   if (!userExists) {
@@ -191,15 +177,7 @@ export const getUserFollowStats  = asyncHandler(async (req, res) => {
 });
 
 export const updateFollowRequest = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new ApiError(401, "Unauthorized!");
-  }
-
   const { followerId, action } = req.body;
-
-  if (!mongoose.isValidObjectId(followerId)) {
-    throw new ApiError(400, "Invalid follower ID");
-  }
 
   const followRequest = await Follow.findOne({
     following: req.user._id,
@@ -227,10 +205,6 @@ export const updateFollowRequest = asyncHandler(async (req, res) => {
 
 //Requests Received for Follow
 export const getPendingRequests = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new ApiError(401, "Unauthorized!");
-  }
-
   const pendingRequests = await Follow.find({ 
       following: req.user._id, 
       status: "pending", 
@@ -265,10 +239,6 @@ export const checkIsFollowing = asyncHandler(async(req,res) =>{
 
 export const getMutualFollowers = asyncHandler(async (req, res) => {
   const { userId } = req.params;
-
-  if (!mongoose.isValidObjectId(userId)) {
-    throw new ApiError(400, "Invalid user ID.");
-  }
 
   const userExists = await User.exists({ _id: userId });
   if (!userExists) {
@@ -380,10 +350,6 @@ export const getRecommendedFollowers = asyncHandler(async (req, res) => {
 export const unblockUser = asyncHandler(async (req, res) => {
   const { userId } = req.body;
 
-  if (!mongoose.isValidObjectId(userId)) {
-    throw new ApiError(400, "Invalid user ID.");
-  }
-
   const followRecord = await Follow.findOne({ follower: req.user._id, following: userId });
 
   if (!followRecord) {
@@ -405,14 +371,6 @@ export const unblockUser = asyncHandler(async (req, res) => {
 export const blockUser = asyncHandler(async (req, res) => {
   const { userId } = req.body;
 
-  if (!mongoose.isValidObjectId(userId)) {
-    throw new ApiError(400, "Invalid user ID.");
-  }
-
-  if (userId === req.user._id.toString()) {
-    throw new ApiError(400, "You cannot block yourself.");
-  }
-
   const followRecord = await Follow.findOneAndUpdate(
     { follower: req.user._id, following: userId },
     { blocked: true, status: "blocked" },
@@ -423,10 +381,6 @@ export const blockUser = asyncHandler(async (req, res) => {
 });
 
 export const getBlockedUsers = asyncHandler(async (req,res) => {
-  if (!req.user) {
-    throw new ApiError(401, "Unauthorized!");
-  }
-
   const blockedRequests = await Follow.find({ 
       follower: req.user._id, 
       status: "blocked",
