@@ -110,7 +110,7 @@ export const getUserFollowing = asyncHandler(async (req, res) => {
 });
 
 export const getMyFollowing = asyncHandler(async (req, res) => {
-  const following = await Follow.find({ follower: req.user._id, blocked: false,status: "accepted" })
+  const following = await Follow.find({ follower: req.user._id, blocked: false, status:"accepted" })
     .populate("following", "username profilePic")
     .lean();
 
@@ -137,37 +137,91 @@ export const getUserFollowStats  = asyncHandler(async (req, res) => {
 
   const counts = await Follow.aggregate([
     {
-      $match: {
-        $or: [{ following: userObjectId }, { follower: userObjectId }]
-      }
-    },
-    {
       $facet: {
-        followers: [{ $match: { following: userObjectId, status:"accepted", blocked: false } }, { $count: "count" }],
-        following: [{ $match: { follower: userObjectId, status:"accepted", blocked: false } }, { $count: "count" }],
-        pendingFollowers: [{ $match: { following: userObjectId, status: "pending", blocked: false } }, { $count: "count" }],
-        pendingFollowing: [{ $match: { follower: userObjectId, status: "pending", blocked: false } }, { $count: "count" }],
-        blockedFollowers:[{ $match: {follower: userObjectId, status: "blocked", blocked:true}},{ $count: "count" }]
+        followers: [
+          { $match: { following: userObjectId, status: "accepted", blocked: false } },
+          { $count: "count" }
+        ],
+        following: [
+          { $match: { follower: userObjectId, status: "accepted", blocked: false } },
+          { $count: "count" }
+        ],
+        pendingFollowers: [
+          { $match: { following: userObjectId, status: "pending", blocked: false } },
+          { $count: "count" }
+        ],
+        pendingFollowing: [
+          { $match: { follower: userObjectId, status: "pending", blocked: false } },
+          { $count: "count" }
+        ],
+        blockedFollowers: [
+          { $match: { follower: userObjectId, status: "blocked", blocked:true } }, // Removed redundant `blocked: true`
+          { $count: "count" }
+        ]
       }
     }
   ]);
+  
 
   // Extract counts properly
-  const followerCount = counts[0].followers[0]?.count || 0;
-  const followingCount = counts[0].following[0]?.count || 0;
-  const pendingFollowerCount = counts[0].pendingFollowers[0]?.count || 0;
-  const pendingFollowingCount = counts[0].pendingFollowing[0]?.count || 0;
-  const blockedFollowercount = counts[0].blockedFollowers[0]?.count || 0;
+  const formattedCounts = {
+    followers: counts[0].followers[0]?.count || 0,
+    following: counts[0].following[0]?.count || 0,
+    pendingFollowers: counts[0].pendingFollowers[0]?.count || 0,
+    pendingFollowing: counts[0].pendingFollowing[0]?.count || 0,
+    blockedFollowers: counts[0].blockedFollowers[0]?.count || 0
+  };
 
   return res.status(200).json(
     new ApiResponse(200, 
-      { 
-        followers: followerCount, 
-        following: followingCount,
-        pendingFollowers: pendingFollowerCount,
-        pendingFollowing: pendingFollowingCount,
-        blockedUsers: blockedFollowercount
-      }, "Fetched Successfully")
+      formattedCounts, "Fetched Successfully")
+  );
+});
+
+export const getMyFollowStats  = asyncHandler(async (req, res) => {
+  
+  const userObjectId = new mongoose.mongo.ObjectId(req.user?._id);
+
+  const counts = await Follow.aggregate([
+    {
+      $facet: {
+        followers: [
+          { $match: { following: userObjectId, status: "accepted", blocked: false } },
+          { $count: "count" }
+        ],
+        following: [
+          { $match: { follower: userObjectId, status: "accepted", blocked: false } },
+          { $count: "count" }
+        ],
+        pendingFollowers: [
+          { $match: { following: userObjectId, status: "pending", blocked: false } },
+          { $count: "count" }
+        ],
+        pendingFollowing: [
+          { $match: { follower: userObjectId, status: "pending", blocked: false } },
+          { $count: "count" }
+        ],
+        blockedFollowers: [
+          { $match: { follower: userObjectId, status: "blocked", blocked:true } }, // Removed redundant `blocked: true`
+          { $count: "count" }
+        ]
+      }
+    }
+  ]);
+  
+
+  // Extract counts properly
+  const formattedCounts = {
+    followers: counts[0].followers[0]?.count || 0,
+    following: counts[0].following[0]?.count || 0,
+    pendingFollowers: counts[0].pendingFollowers[0]?.count || 0,
+    pendingFollowing: counts[0].pendingFollowing[0]?.count || 0,
+    blockedFollowers: counts[0].blockedFollowers[0]?.count || 0
+  };
+
+  return res.status(200).json(
+    new ApiResponse(200, 
+      formattedCounts, "Fetched Successfully")
   );
 });
 
@@ -208,7 +262,9 @@ export const getPendingRequests = asyncHandler(async (req, res) => {
     .populate("follower", "username profilePic")
     .lean();
 
-  return res.status(200).json(new ApiResponse(200, { pendingRequests }, "Pending follow requests fetched."));
+    const msg = pendingRequests.length > 0 ? "Pending follow requests fetched" : "No Pending Requests";
+
+  return res.status(200).json(new ApiResponse(200, { pendingRequests }, msg));
 });
 
 //Requests sent for Follow
@@ -286,7 +342,9 @@ export const getMutualFollowers = asyncHandler(async (req, res) => {
     },
   ]);
 
-  return res.status(200).json(new ApiResponse(200, { mutualFollowers }, "Mutual followers list."));
+  const msg = mutualFollowers.length > 0 ? "Mutual followers list" : "Follow more people to see mutual";
+
+  return res.status(200).json(new ApiResponse(200, { mutualFollowers }, msg));
 });
 
 export const getRecommendedFollowers = asyncHandler(async (req, res) => {
@@ -339,7 +397,9 @@ export const getRecommendedFollowers = asyncHandler(async (req, res) => {
     },
   ]);
 
-  return res.status(200).json(new ApiResponse(200, { recommendedUsers }, "Recommended users list."));
+  const msg = recommendedUsers.length > 0 ? "Recommended users list" : "Follow more people to see recommendations";
+
+  return res.status(200).json(new ApiResponse(200, { recommendedUsers }, msg));
 });
 
 export const unblockUser = asyncHandler(async (req, res) => {
@@ -364,15 +424,26 @@ export const unblockUser = asyncHandler(async (req, res) => {
 });
 
 export const blockUser = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
+  const { followingId } = req.body;
 
-  const followRecord = await Follow.findOneAndUpdate(
-    { follower: req.user._id, following: userId },
-    { blocked: true, status: "blocked" },
-    { new: true, upsert: true }
-  );
+  // Check if the user is actually following before blocking
+  const followRecord = await Follow.findOne({
+    follower: req.user._id,
+    following: followingId,
+    status: "accepted", // ✅ Ensure only accepted follows can be blocked
+    blocked: false // ✅ Ensure it's not already blocked
+  });
 
-  return res.status(200).json(new ApiResponse(200, { blocked: true }, "User blocked successfully."));
+  if (!followRecord) {
+    throw new ApiError(400, "No existing relationship to block.");
+  }
+
+  // Now update the existing record to blocked
+  followRecord.status = "blocked";
+  followRecord.blocked = true;
+  await followRecord.save();
+
+  return res.status(200).json(new ApiResponse(200, followRecord, "User blocked successfully."));
 });
 
 export const getBlockedUsers = asyncHandler(async (req,res) => {
@@ -384,7 +455,9 @@ export const getBlockedUsers = asyncHandler(async (req,res) => {
     .populate("following", "username profilePic")
     .lean();
 
-  return res.status(200).json(new ApiResponse(200, { blockedRequests }, "Blocked follow requests fetched."));
+    const msg = blockedRequests.length > 0 ? "Blocked follow requests fetched." : "No Blocked requests";
+
+  return res.status(200).json(new ApiResponse(200, { blockedRequests }, msg));
 });
 
 export const getUserFollowersList = async (userId) => {

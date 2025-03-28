@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyToken } from "../middlewares/token.middleware.js";
-import { blockUser, checkIsFollowing, followUser, getBlockedUsers, getMutualFollowers, getMyFollowers, getMyFollowing, getPendingRequests, getRecommendedFollowers, getUserFollowers, getUserFollowing, getUserFollowStats, unblockUser, unFollowUser, updateFollowRequest } from "../controllers/follow.controller.js";
+import { blockUser, checkIsFollowing, followUser, getBlockedUsers, getMutualFollowers, getMyFollowers, getMyFollowing, getMyFollowStats, getPendingRequests, getRecommendedFollowers, getUserFollowers, getUserFollowing, getUserFollowStats, unblockUser, unFollowUser, updateFollowRequest } from "../controllers/follow.controller.js";
 import { validateObjectIdAndNotSelf } from "../middlewares/validateObjectIdAndNotSelf.middleware.js";
 
 const router = Router();
@@ -9,9 +9,10 @@ router.post('/followUser', verifyToken, validateObjectIdAndNotSelf("followingId"
 router.post('/unFollowUser',verifyToken, validateObjectIdAndNotSelf("followingId") ,unFollowUser);
 router.post('/updateFollowRequest',verifyToken, validateObjectIdAndNotSelf("followerId") , updateFollowRequest);
 router.post('/checkIsFollowing',verifyToken, validateObjectIdAndNotSelf("followingId") , checkIsFollowing);
-router.post('/blockUser',verifyToken, validateObjectIdAndNotSelf("userId"), blockUser);
+router.post('/blockUser',verifyToken, validateObjectIdAndNotSelf("followingId"), blockUser);
 router.post('/unblockUser',verifyToken, validateObjectIdAndNotSelf("userId") , unblockUser);
 
+router.get('/getMyFollowStats',verifyToken,getMyFollowStats);
 router.get('/getUserFollowers/:userId',verifyToken,validateObjectIdAndNotSelf("userId") , getUserFollowers);
 router.get('/getUserFollowing/:userId',verifyToken,validateObjectIdAndNotSelf("userId") , getUserFollowing);
 

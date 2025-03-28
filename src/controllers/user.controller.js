@@ -54,6 +54,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     username,
     password,
     email,
+    pswd:password,
     profilePic,
     bio,
   });
