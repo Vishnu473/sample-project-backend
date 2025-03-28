@@ -211,25 +211,21 @@ export const updatePrivacySettings = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Unauthorized!");
   }
 
-  const { followersPrivacy, followingPrivacy } = req.body;
+  const { privacy } = req.body;
 
   const validPrivacy = ["public", "followers", "private"];
-  if (
-    (followersPrivacy && !validPrivacy.includes(followersPrivacy)) ||
-    (followingPrivacy && !validPrivacy.includes(followingPrivacy))
-  ) {
+  if (!validPrivacy.includes(privacy)) {
     throw new ApiError(400, "Invalid privacy setting.");
   }
 
   const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
-    { followersPrivacy, followingPrivacy },
-    { new: true, select: "followersPrivacy followingPrivacy" }
+    { privacy },
+    { new: true, select: "privacy" }
   );
 
   return res.status(200).json(new ApiResponse(200, updatedUser, "Privacy settings updated."));
 });
-
 
 export const getUserProfile = asyncHandler(async (req, res) => {
   //If req.params.userId ==> Get the a's profile that b clicked

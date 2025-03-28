@@ -10,16 +10,7 @@ const UserSchema = new Schema(
     profilePic: { type: String, default: "" },
     bio: { type: String, default: "" },
     refreshToken:{type:String},
-    followersPrivacy: {
-      type: String,
-      enum: ["public", "followers", "private"], // Who can see followers list
-      default: "public",
-    },
-    followingPrivacy: {
-      type: String,
-      enum: ["public", "followers", "private"], // Who can see following list
-      default: "public",
-    },
+    privacy:{type:String, enum:["public","followers", "private"], default:"public"}
   },
   {
     timestamps: true,

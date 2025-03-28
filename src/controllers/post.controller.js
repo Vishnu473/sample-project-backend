@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
+import { getUserFollowers, getUserFollowersList } from "./follow.controller.js";
 
 export const getAllMyPosts = asyncHandler(async (req, res) => {
   if (!req.user) {
@@ -139,19 +140,31 @@ export const getUserPosts = asyncHandler(async (req, res) => {
   const userId = req.params.userId;
 
   if (!userId) {
-    throw new ApiError(400, "Unauthorized");
+    throw new ApiError(400, "UserId is required!");
   }
 
   if (!mongoose.isValidObjectId(userId)) {
     throw new ApiError(400, "UserId is invalid");
   }
 
-  const userExists = await User.findById(userId);
+  const userExists = await User.findById(userId).select("privacy");
   if (!userExists) {
-    throw ApiError(404, "User not found");
+    throw new ApiError(404, "User not found");
   }
 
-  const userPosts = await Post.find({ creator: userId }).sort({ createdAt: -1 });;
+  const requestingUserId = req.user?._id;
+
+  let userPosts = [];
+
+  const userFollowers = await getUserFollowersList(userId);
+
+  if (
+    userExists.privacy === "public" || 
+    requestingUserId?.toString() === userId || 
+    (userExists.privacy === "followers" && userFollowers.includes(requestingUserId))
+  ) {
+    userPosts = await Post.find({ creator: userId }).sort({ createdAt: -1 });
+  }
 
   return res
     .status(200)

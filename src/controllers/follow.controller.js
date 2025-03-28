@@ -8,7 +8,7 @@ import { ApiResponse } from "../utils/ApiResponse";
 export const followUser = asyncHandler(async (req, res) => {
   const { followingId } = req.body;
 
-  const followingUser = await User.findById(followingId).select("followersPrivacy");
+  const followingUser = await User.findById(followingId).select("privacy");
   if (!followingUser) throw new ApiError(404, "User not found!");
 
   const alreadyFollowing = await Follow.findOne({
@@ -17,11 +17,11 @@ export const followUser = asyncHandler(async (req, res) => {
   });
 
   if (alreadyFollowing) {
-    throw new ApiError(400, `You are already following this user`);
+    throw new ApiError(400, `You have already ${alreadyFollowing.status === "pending" ? "sent a follow request" : "followed this user"}`);
   }
 
-  const isPrivate = followingUser.followersPrivacy === "private";
-  const followStatus = isPrivate ? "pending" : "accepted";
+  const isPrivateOrFollowers = followingUser.privacy === "private" || followingUser.privacy === "followers";
+  const followStatus = isPrivateOrFollowers ? "pending" : "accepted";
 
   const newFollow = await Follow.create({
     follower: req.user._id,
@@ -29,25 +29,9 @@ export const followUser = asyncHandler(async (req, res) => {
     status: followStatus,
   });
 
-  const message = isPrivate
-    ? "Follow request sent."
-    : "You are now following this user.";
+  const message = followStatus === "pending" ? "Follow request sent." : "You are now following this user.";
 
   return res.status(201).json(new ApiResponse(201, newFollow, message));
-});
-
-export const acceptFollowRequest = asyncHandler(async (req, res) => {
-  const { followerId } = req.body;
-  
-  const followRequest = await Follow.findOneAndUpdate(
-    { follower: followerId, following: req.user._id, status: "pending" }, //filter
-    { status: "accepted" }, //update field
-    { new: true }
-  );
-
-  if (!followRequest) throw new ApiError(404, "No pending follow request found.");
-
-  return res.status(200).json(new ApiResponse(200, followRequest, "Follow request accepted."));
 });
 
 export const unFollowUser = asyncHandler(async (req, res) => {
@@ -69,23 +53,28 @@ export const unFollowUser = asyncHandler(async (req, res) => {
 export const getUserFollowers = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  const user = await User.findById(userId).select("followersPrivacy");
+  const user = await User.findById(userId).select("privacy");
   if (!user) throw new ApiError(404, "User not found.");
 
-  if (user.followersPrivacy === "private" && req.user?._id.toString() !== userId) {
-    throw new ApiError(403, "You do not have permission to view this user's followers.");
-  }
+  let followers = [];
+  let isFollower = false;
+  const requestingUserId = req.user?._id?.toString();
 
-  if (user.followersPrivacy === "followers") {
-    const isFollowing = await Follow.exists({ follower: req.user?._id, following: userId, status: "accepted" });
-    if (!isFollowing) {
-      throw new ApiError(403, "Only followers can see this user's followers.");
+  if (user.privacy === "public" || requestingUserId === userId) {
+    isFollower = true;
+  } else if (user.privacy === "followers") {
+    isFollower = await Follow.exists({
+      follower: requestingUserId,
+      following: userId,
+      status: "accepted",
+    });
+
+    if (isFollower) {
+      followers = await Follow.find({ following: userId, blocked: false, status: "accepted" })
+        .populate("follower", "username profilePic")
+        .lean();
     }
   }
-
-  const followers = await Follow.find({ following: userId, blocked: false, status: "accepted" })
-    .populate("follower", "username profilePic")
-    .lean();
 
   return res.status(200).json(new ApiResponse(200, { followers }, "Followers fetched successfully."));
 });
@@ -93,23 +82,29 @@ export const getUserFollowers = asyncHandler(async (req, res) => {
 export const getUserFollowing = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  const user = await User.findById(userId).select("followingPrivacy");
+  const user = await User.findById(userId).select("privacy");
   if (!user) throw new ApiError(404, "User not found.");
 
-  if (user.followingPrivacy === "private" && req.user?._id.toString() !== userId) {
-    throw new ApiError(403, "You do not have permission to view this user's following list.");
-  }
+  let following = [];
+  let isFollower = false;
+  const requestingUserId = req.user?._id?.toString();
 
-  if (user.followingPrivacy === "followers") {
-    const isFollowing = await Follow.exists({ follower: req.user?._id, following: userId, status: "accepted" });
-    if (!isFollowing) {
-      throw new ApiError(403, "Only followers can see this user's following list.");
+  if (user.privacy === "public" || requestingUserId === userId) {
+    isFollower = true;
+  } else if (user.privacy === "followers") {
+    // If privacy is "followers", check if the requester is a follower
+    isFollower = await Follow.exists({
+      follower: requestingUserId,
+      following: userId,
+      status: "accepted",
+    });
+
+    if (isFollower) {
+      following = await Follow.find({ follower: userId, blocked: false, status: "accepted" })
+        .populate("following", "username profilePic")
+        .lean();
     }
   }
-
-  const following = await Follow.find({ follower: userId, blocked: false, status: "accepted" })
-    .populate("following", "username profilePic")
-    .lean();
 
   return res.status(200).json(new ApiResponse(200, { following }, "Following list fetched successfully."));
 });
@@ -391,3 +386,11 @@ export const getBlockedUsers = asyncHandler(async (req,res) => {
 
   return res.status(200).json(new ApiResponse(200, { blockedRequests }, "Blocked follow requests fetched."));
 });
+
+export const getUserFollowersList = async (userId) => {
+  const followers = await Follow.find({ following: userId, blocked: false, status: "accepted" })
+    .select("follower")
+    .lean();
+
+  return followers.map((f) => f.follower.toString());
+};
