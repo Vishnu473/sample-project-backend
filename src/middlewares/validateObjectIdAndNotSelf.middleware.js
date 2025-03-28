@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ApiError } from "../utils/ApiError";
+import { ApiError } from "../utils/ApiError.js";
 
 export const validateObjectIdAndNotSelf  = (idField) => (req, res, next) => {
   if (!req.user) {

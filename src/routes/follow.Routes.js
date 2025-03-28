@@ -1,12 +1,11 @@
 import { Router } from "express";
-import { verifyToken } from "../middlewares/token.middleware";
-import { acceptFollowRequest, blockUser, checkIsFollowing, followUser, getBlockedUsers, getMutualFollowers, getMyFollowers, getMyFollowing, getPendingRequests, getRecommendedFollowers, getUserFollowers, getUserFollowing, getUserFollowStats, unblockUser, unFollowUser, updateFollowRequest } from "../controllers/follow.controller";
-import { validateObjectIdAndNotSelf } from "../middlewares/validateObjectIdAndNotSelf.middleware";
+import { verifyToken } from "../middlewares/token.middleware.js";
+import { blockUser, checkIsFollowing, followUser, getBlockedUsers, getMutualFollowers, getMyFollowers, getMyFollowing, getPendingRequests, getRecommendedFollowers, getUserFollowers, getUserFollowing, getUserFollowStats, unblockUser, unFollowUser, updateFollowRequest } from "../controllers/follow.controller.js";
+import { validateObjectIdAndNotSelf } from "../middlewares/validateObjectIdAndNotSelf.middleware.js";
 
 const router = Router();
 
 router.post('/followUser', verifyToken, validateObjectIdAndNotSelf("followingId"), followUser);
-router.post('/acceptFollowRequest',verifyToken,validateObjectIdAndNotSelf("followerId") , acceptFollowRequest);
 router.post('/unFollowUser',verifyToken, validateObjectIdAndNotSelf("followingId") ,unFollowUser);
 router.post('/updateFollowRequest',verifyToken, validateObjectIdAndNotSelf("followerId") , updateFollowRequest);
 router.post('/checkIsFollowing',verifyToken, validateObjectIdAndNotSelf("followingId") , checkIsFollowing);

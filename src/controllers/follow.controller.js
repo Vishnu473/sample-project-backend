@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { Follow } from "../models/follow.model";
-import { User } from "../models/user.model";
-import { asyncHandler } from "../services/asyncHandler";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
+import { Follow } from "../models/follow.model.js";
+import { User } from "../models/user.model.js";
+import { asyncHandler } from "../services/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const followUser = asyncHandler(async (req, res) => {
   const { followingId } = req.body;
