@@ -5,7 +5,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
-import { getUserFollowers, getUserFollowersList } from "./follow.controller.js";
+import { getUserFollowersList } from "./follow.controller.js";
 
 export const getAllMyPosts = asyncHandler(async (req, res) => {
   if (!req.user) {
