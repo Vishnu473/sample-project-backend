@@ -153,7 +153,7 @@ export const getUserPosts = asyncHandler(async (req, res) => {
   }
 
   const requestingUserId = req.user?._id;
-
+ 
   let userPosts = [];
 
   const userFollowers = await getUserFollowersList(userId);
@@ -161,11 +161,10 @@ export const getUserPosts = asyncHandler(async (req, res) => {
   if (
     userExists.privacy === "public" || 
     requestingUserId?.toString() === userId || 
-    (userExists.privacy === "followers" && userFollowers.includes(requestingUserId))
+    (userExists.privacy === "followers" && userFollowers.includes(requestingUserId.toString()))
   ) {
     userPosts = await Post.find({ creator: userId }).sort({ createdAt: -1 });
   }
-
   return res
     .status(200)
     .json(new ApiResponse(200, userPosts, "Posts fetched successfully"));
